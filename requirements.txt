@@ -1,0 +1,3 @@
+# Example requirements.txt
+ldap3
+requests
