@@ -1,23 +1,29 @@
-from ldap3 import Server, Connection, ALL, MODIFY_REPLACE
+from ldap3 import Server, Connection, ALL
 import os
+import sys
 
-# Load environment variables
+# Environment variables passed from Jenkins
 ad_server = os.getenv('AD_SERVER')
 ad_user = os.getenv('AD_USER')
 ad_password = os.getenv('AD_PASSWORD')
-user_dn = os.getenv('USER_DN')
-target_ou = os.getenv('TARGET_OU')
+username = os.getenv('USERNAME')   # User to move
+destination_ou = os.getenv('DESTINATION_OU')  # Selected OU
+
+# Construct Distinguished Names (DN)
+user_dn = f'CN={username},OU=TestOU1,DC=example,DC=com'  # Modify according to your structure
 
 try:
-    # Connect to the AD server
+    # Connect to AD server
     server = Server(ad_server, get_info=ALL)
     conn = Connection(server, ad_user, ad_password, auto_bind=True)
 
-    # Perform the move operation
-    conn.modify_dn(user_dn, f'CN={user_dn.split(",")[0].split("=")[1]}', new_superior=target_ou)
+    # Move user to the destination OU
+    conn.modify_dn(user_dn, f'CN={username}', new_superior=destination_ou)
+
+    # Check result
     if conn.result['description'] == 'success':
-        print("User moved successfully.")
+        print(f"User {username} moved to {destination_ou} successfully.")
     else:
-        print("Failed to move user:", conn.result['description'])
+        print(f"Failed to move user: {conn.result['description']}")
 except Exception as e:
     print("Error:", str(e))
