@@ -3,7 +3,13 @@ pipeline {
 
     environment {
         GIT_REPO = 'https://github.com/charithw98/AD-Automation.git'
-        SCRIPT_NAME = 'move_ad_user.py'  // Name of the Python script
+        SCRIPT_NAME = 'move_ad_user.py'
+        AD_SERVER = 'YourADServerAddress'  // Replace with your AD server address if needed
+    }
+
+    parameters {
+        string(name: 'USERNAME', description: 'Enter the username to move')
+        choice(name: 'TARGET_OU', choices: ['OU1', 'OU2', 'OU3'], description: 'Select the target OU')
     }
 
     stages {
@@ -16,15 +22,20 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                echo 'Installing Python dependencies...'
-                sh 'pip install -r requirements.txt'  // Ensure a requirements.txt file exists
+                echo 'Installing Python and dependencies...'
+                // Ensure Python is installed and dependencies are added here
+                sh '''
+                sudo apt-get update
+                sudo apt-get install -y python3 python3-pip
+                pip3 install ldap3 pywinrm
+                '''
             }
         }
 
         stage('Run Script') {
             steps {
                 echo 'Running the Python script...'
-                sh "python ${SCRIPT_NAME}"
+                sh "python3 ${SCRIPT_NAME} --username ${params.USERNAME} --target_ou ${params.TARGET_OU}"
             }
         }
     }
