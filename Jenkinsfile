@@ -1,51 +1,32 @@
 pipeline {
-    agent any  // Runs on any available Jenkins agent
-
-    environment {
-        GIT_REPO = 'https://github.com/charithw98/AD-Automation.git'
-        SCRIPT_NAME = 'move_ad_user.py'
-        AD_SERVER = 'YourADServerAddress'  // Replace with your AD server address if needed
-    }
+    agent any
 
     parameters {
-        string(name: 'USERNAME', description: 'Enter the username to move')
-        choice(name: 'TARGET_OU', choices: ['OU1', 'OU2', 'OU3'], description: 'Select the target OU')
+        string(name: 'USERNAME', defaultValue: '', description: 'Enter the username to move.')
+        choice(name: 'DESTINATION_OU', choices: ['OU=TestOU1,DC=example,DC=com', 'OU=TestOU2,DC=example,DC=com'], description: 'Select the destination OU')
+    }
+
+    environment {
+        AD_SERVER = 'ldap://yourserver'  // Replace with your actual AD server
     }
 
     stages {
-        stage('Clone Repository') {
+        stage('Checkout') {
             steps {
-                echo 'Cloning the repository...'
-                git branch: 'main', url: "${GIT_REPO}"
+                // Assuming the script is in the repository
+                git 'https://your-repository-url.git'
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Move AD User') {
             steps {
-                echo 'Installing Python and dependencies...'
-                // Ensure Python is installed and dependencies are added here
-                sh '''
-                sudo apt-get update
-                sudo apt-get install -y python3 python3-pip
-                pip3 install ldap3 pywinrm
-                '''
+                withCredentials([usernamePassword(credentialsId: 'ad_credentials', usernameVariable: 'AD_USER', passwordVariable: 'AD_PASSWORD')]) {
+                    // Run the Python script, passing parameters
+                    sh """
+                    python3 move_ad_user.py
+                    """
+                }
             }
-        }
-
-        stage('Run Script') {
-            steps {
-                echo 'Running the Python script...'
-                sh "python3 ${SCRIPT_NAME} --username ${params.USERNAME} --target_ou ${params.TARGET_OU}"
-            }
-        }
-    }
-
-    post {
-        success {
-            echo 'User successfully moved in Active Directory.'
-        }
-        failure {
-            echo 'Failed to move user.'
         }
     }
 }
