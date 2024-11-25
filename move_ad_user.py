@@ -1,29 +1,37 @@
-# move_ad_user.py
-import ldap3
-import sys
+import os
+from ldap3 import Server, Connection, ALL, MODIFY_REPLACE
+from ldap3.core.exceptions import LDAPException
 
-# Parameters from Jenkins
-username = sys.argv[1]
-target_ou = sys.argv[2]
+# Environment variables for security
+AD_SERVER = os.getenv('AD_SERVER', 'your_ad_server')
+AD_USER = os.getenv('AD_USER', 'your_ad_username')
+AD_PASSWORD = os.getenv('AD_PASSWORD', 'your_ad_password')
+USER_DN = os.getenv('USER_DN')  # Distinguished Name of the user to move
+TARGET_OU = os.getenv('TARGET_OU')  # Target OU to move the user to
 
-# AD Server details
-AD_SERVER = 'ldap://<Windows_Server_IP>'
-AD_USER = 'tase@test.com'
-AD_PASSWORD = 'Testuser@123'
+def move_user():
+    try:
+        # Connect to the AD server
+        server = Server(AD_SERVER, get_info=ALL)
+        conn = Connection(server, AD_USER, AD_PASSWORD, auto_bind=True)
 
-# Connect to AD server
-server = ldap3.Server(AD_SERVER)
-conn = ldap3.Connection(server, AD_USER, AD_PASSWORD, auto_bind=True)
+        if not conn.bind():
+            print('Failed to bind to the server')
+            return
 
-# Distinguished Name (DN) of the user and target OU
-user_dn = f'CN={username},OU=TestOU1,DC=test,DC=com'  # Adjust as per your OU structure
-target_dn = target_ou
+        # Move the user to the target OU
+        new_dn = f'CN={USER_DN.split(",")[0][3:]},{TARGET_OU}'
+        conn.modify_dn(USER_DN, new_dn)
 
-# Move user
-if conn.modify_dn(user_dn, f'CN={username}', new_superior=target_dn):
-    print(f'User {username} moved to {target_ou} successfully.')
-else:
-    print('Failed to move user:', conn.result['description'])
+        if conn.result['description'] == 'success':
+            print(f'User {USER_DN} moved successfully to {TARGET_OU}')
+        else:
+            print(f'Failed to move user: {conn.result}')
 
-conn.unbind()
+        conn.unbind()
 
+    except LDAPException as e:
+        print(f'LDAP error: {e}')
+
+if __name__ == '__main__':
+    move_user()
