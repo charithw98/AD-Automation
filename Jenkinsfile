@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        AD_SERVER = 'ldap://yourserver'
+        AD_SERVER = 'ldap:10.101.16.42'
     }
     
     parameters {
