@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git url: "${GIT_REPO}"
+                //git url: "${GIT_REPO}"
             }
         }
         stage('Install Dependencies') {
