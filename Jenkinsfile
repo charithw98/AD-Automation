@@ -1,6 +1,7 @@
 pipeline {
     agent any
     environment {
+        GIT_REPO = 'https://github.com/charithw98/AD-Automation.git'
         SCRIPT_NAME = 'move_ad_user.py'
     }
     parameters {
@@ -33,4 +34,3 @@ pipeline {
         }
     }
 }
-
