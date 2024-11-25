@@ -14,7 +14,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Clone the repository containing the Python script
-                git 'https://your-repository-url.git'
+                git 'https://github.com/charithw98/AD-Automation.git'
             }
         }
         
