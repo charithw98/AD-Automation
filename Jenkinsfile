@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        AD_SERVER = 'ldap:10.101.16.42'
+        AD_SERVER = 'ldap://10.101.16.42'  // Ensure this is correct
     }
     
     parameters {
@@ -14,7 +14,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Clone the repository containing the Python script
-                //git 'https://github.com/charithw98/AD-Automation.git'
+                git url: 'https://github.com/charithw98/AD-Automation.git', branch: 'main'
             }
         }
         
@@ -24,7 +24,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'ad_credentials', usernameVariable: 'AD_USER', passwordVariable: 'AD_PASSWORD')]) {
                     // Run the Python script with parameters
                     sh """
-                    python3 move_ad_user.py
+                    python3 move_ad_user.py ${params.AD_USERNAME} ${params.DESTINATION_OU}
                     """
                 }
             }
