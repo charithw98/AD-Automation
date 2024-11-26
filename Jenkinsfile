@@ -1,36 +1,78 @@
 pipeline {
     agent any
-    
+
     environment {
-        AD_SERVER = 'ldap://10.101.16.42'  // Ensure this is correct
+        // Define environment variables (e.g., credentials or directories)
+        GIT_REPO = "https://github.com/charithw98/AD-Automation.git"
+        PYTHON_VERSION = "python3"
     }
-    
-    parameters {
-        string(name: 'AD_USERNAME', description: 'Enter the Active Directory username to move')
-        choice(name: 'DESTINATION_OU', choices: ['OU=TestOU1,DC=example,DC=com', 'OU=TestOU2,DC=example,DC=com'], description: 'Select the destination OU')
-    }
-    
+
     stages {
-        stage('Verify Environment') {
+        // Stage 1: Checkout code from GitHub repository
+        stage('Checkout SCM') {
             steps {
-                // Verify that Python3 is available
-                sh '''
-                echo "Current PATH: $PATH"
-                python3 --version || { echo "Python3 not found"; exit 1; }
-                '''
+                script {
+                    // Checkout the code from GitHub
+                    checkout scm
+                }
             }
         }
 
-        stage('Move AD User') {
+        // Stage 2: Setup the environment
+        stage('Setup Environment') {
             steps {
-                // Load credentials securely
-                withCredentials([usernamePassword(credentialsId: 'ad_credentials', usernameVariable: 'AD_USER', passwordVariable: 'AD_PASSWORD')]) {
-                    // Run the Python script with parameters
-                    sh """
-                    python3 move_ad_user.py ${params.AD_USERNAME} ${params.DESTINATION_OU}
-                    """
+                script {
+                    // Update the apt package list and install Python3
+                    echo "Installing Python3 and necessary dependencies..."
+
+                    // Ensure apt-get update has the proper permissions
+                    sh '''#!/bin/bash
+                    sudo apt-get update
+                    sudo apt-get install -y python3 python3-pip python3-venv
+                    '''
+
+                    // Install any Python dependencies from requirements.txt
+                    if (fileExists('requirements.txt')) {
+                        sh '''
+                        pip3 install -r requirements.txt
+                        '''
+                    }
                 }
             }
+        }
+
+        // Stage 3: Move AD Users
+        stage('Move AD User') {
+            steps {
+                script {
+                    // Assuming move_ad_user.py is the Python script to execute
+                    echo "Running AD User Migration Script..."
+                    sh '''
+                    python3 move_ad_user.py
+                    '''
+                }
+            }
+        }
+
+        // Stage 4: Post Actions
+        stage('Post Actions') {
+            steps {
+                script {
+                    // Any cleanup or post-deployment tasks can go here
+                    echo "Pipeline completed successfully!"
+                }
+            }
+        }
+    }
+
+    post {
+        // Handling possible errors and cleanup
+        failure {
+            echo "The pipeline failed. Please check the logs for errors."
+        }
+
+        success {
+            echo "Pipeline executed successfully!"
         }
     }
 }
