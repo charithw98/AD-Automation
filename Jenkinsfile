@@ -18,13 +18,24 @@ pipeline {
             }
         }
         
+        stage('Verify Environment') {
+            steps {
+                // Debug steps to verify PATH and python3 availability
+                sh '''
+                echo "Current PATH: $PATH"
+                which python3
+                python3 --version
+                '''
+            }
+        }
+        
         stage('Move AD User') {
             steps {
                 // Load credentials securely
                 withCredentials([usernamePassword(credentialsId: 'ad_credentials', usernameVariable: 'AD_USER', passwordVariable: 'AD_PASSWORD')]) {
-                    // Run the Python script with parameters
+                    // Run the Python script with parameters using absolute path
                     sh """
-                    python3 move_ad_user.py ${params.AD_USERNAME} ${params.DESTINATION_OU}
+                    /usr/bin/python3 move_ad_user.py ${params.AD_USERNAME} ${params.DESTINATION_OU}
                     """
                 }
             }
