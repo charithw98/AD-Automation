@@ -14,7 +14,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Clone the repository containing the Python script
-                git url: 'https://github.com/charithw98/AD-Automation.git', branch: 'main'
+                //git url: 'https://github.com/charithw98/AD-Automation.git', branch: 'main'
             }
         }
         
