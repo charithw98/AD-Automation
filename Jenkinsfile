@@ -11,31 +11,24 @@ pipeline {
     }
     
     stages {
-        stage('Checkout') {
-            steps {
-                // Clone the repository containing the Python script
-                //git url: 'https://github.com/charithw98/AD-Automation.git', branch: 'main'
-            }
-        }
-        
         stage('Verify Environment') {
             steps {
-                // Debug steps to verify PATH and python3 availability
+                // Check Python environment
                 sh '''
                 echo "Current PATH: $PATH"
-                which python3
+                which python3 || { echo "python3 not found"; exit 1; }
                 python3 --version
                 '''
             }
         }
-        
+
         stage('Move AD User') {
             steps {
                 // Load credentials securely
                 withCredentials([usernamePassword(credentialsId: 'ad_credentials', usernameVariable: 'AD_USER', passwordVariable: 'AD_PASSWORD')]) {
-                    // Run the Python script with parameters using absolute path
+                    // Run the Python script with parameters
                     sh """
-                    /usr/bin/python3 move_ad_user.py ${params.AD_USERNAME} ${params.DESTINATION_OU}
+                    python3 move_ad_user.py ${params.AD_USERNAME} ${params.DESTINATION_OU}
                     """
                 }
             }
