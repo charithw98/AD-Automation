@@ -27,8 +27,8 @@ pipeline {
 
                     // Ensure apt-get update has the proper permissions
                     sh '''#!/bin/bash
-                    sudo apt-get update
-                    sudo apt-get install -y python3 python3-pip python3-venv
+                    apt-get update
+                    apt-get install -y python3 python3-pip python3-venv
                     '''
 
                     // Install any Python dependencies from requirements.txt
