@@ -1,9 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'python:3.10'  // Use a Docker image with Python pre-installed
-            args '-u root'       // Run as root
-        }
+    agent any
 
     environment {
         // Define environment variables (e.g., credentials or directories)
