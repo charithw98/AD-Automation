@@ -7,16 +7,16 @@ pipeline {
         PYTHON_VERSION = "python3"
     }
 
-    stages {
-        // Stage 1: Checkout code from GitHub repository
+     stages {
         stage('Checkout SCM') {
             steps {
-                script {
-                    // Checkout the code from GitHub
-                    checkout scm
-                }
+                checkout([$class: 'GitSCM',
+                          branches: [[name: '*/main']],  // Adjust the branch name if needed
+                          userRemoteConfigs: [[url: 'https://github.com/charithw98/AD-Automation.git']]
+                ])
             }
         }
+    }
 
         // Stage 2: Setup the environment
         stage('Setup Environment') {
