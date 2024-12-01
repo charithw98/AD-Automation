@@ -1,23 +1,24 @@
-import win32com.client
+from ldap3 import Server, Connection, ALL, MODIFY_REPLACE
 import sys
 
 def move_user(ad_username, target_ou, server_ip, ad_user, ad_password):
     try:
-        # Create the AD connection
-        ad = win32com.client.Dispatch("ADODB.Connection")
-        connection_string = f"Provider=ADsDSOObject;Data Source=LDAP://{server_ip};"
-        ad.Open(connection_string)
+        # Connect to the AD server
+        server = Server(server_ip, get_info=ALL)
+        conn = Connection(server, user=f"CN={ad_user},CN=Users,DC=example,DC=com", password=ad_password, auto_bind=True)
 
-        # Authenticate
-        ad.Login(ad_user, ad_password)
-
-        # Define the user and the target OU
-        user_dn = f"CN={ad_username},OU=TestOU2,DC=example,DC=com"  # Adjust as needed
+        # Define the user's DN and the target OU DN
+        user_dn = f"CN={ad_username},OU=TestOU2,DC=example,DC=com"  # Adjust based on your environment
         target_dn = f"OU={target_ou},DC=example,DC=com"
 
-        # Move user to the target OU
-        ad.MoveHere(user_dn, target_dn)
-        print(f"Successfully moved user {ad_username} to {target_ou}")
+        # Prepare the move operation
+        move_result = conn.modify_dn(user_dn, target_dn)
+        
+        if move_result:
+            print(f"Successfully moved user {ad_username} to {target_ou}")
+        else:
+            print(f"Failed to move user {ad_username}: {conn.last_error}")
+            sys.exit(1)
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)
