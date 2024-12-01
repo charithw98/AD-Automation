@@ -1,78 +1,43 @@
 pipeline {
     agent any
 
+    parameters {
+        string(name: 'AD_USERNAME', defaultValue: 'exampleuser', description: 'Enter the AD username to move')
+        choice(name: 'TARGET_OU', choices: ['TestOU1', 'TestOU2'], description: 'Select the target OU')
+    }
+
     environment {
-        // Define environment variables (e.g., credentials or directories)
-        GIT_REPO = "https://github.com/charithw98/AD-Automation.git"
-        PYTHON_VERSION = "python3"
+        AD_SERVER = '10.101.16.42'
+        AD_USER = 'tase'
+        AD_PASSWORD = 'Testuser@123'
     }
 
-     stages {
-        stage('Checkout SCM') {
-            steps {
-                checkout([$class: 'GitSCM',
-                          branches: [[name: '*/main']],  // Adjust the branch name if needed
-                          userRemoteConfigs: [[url: 'https://github.com/charithw98/AD-Automation.git']]
-                ])
-            }
-        }
-    }
-
-        // Stage 2: Setup the environment
-        stage('Setup Environment') {
-            steps {
-                script {
-                    // Update the apt package list and install Python3
-                    echo "Installing Python3 and necessary dependencies..."
-
-                    // Ensure apt-get update has the proper permissions
-                    sh '''#!/bin/bash
-                    apt-get update
-                    apt-get install -y python3 python3-pip python3-venv
-                    '''
-
-                    // Install any Python dependencies from requirements.txt
-                    if (fileExists('requirements.txt')) {
-                        sh '''
-                        pip3 install -r requirements.txt
-                        '''
-                    }
-                }
-            }
-        }
-
-        // Stage 3: Move AD Users
+    stages {
         stage('Move AD User') {
             steps {
                 script {
-                    // Assuming move_ad_user.py is the Python script to execute
-                    echo "Running AD User Migration Script..."
-                    sh '''
-                    python3 move_ad_user.py
-                    '''
-                }
-            }
-        }
+                    // Define the parameters from the Jenkins UI
+                    def username = params.AD_USERNAME
+                    def target_ou = params.TARGET_OU
+                    def server_ip = env.AD_SERVER
+                    def ad_user = env.AD_USER
+                    def ad_password = env.AD_PASSWORD
 
-        // Stage 4: Post Actions
-        stage('Post Actions') {
-            steps {
-                script {
-                    // Any cleanup or post-deployment tasks can go here
-                    echo "Pipeline completed successfully!"
+                    // Run the Python script to move the user
+                    sh """
+                        python3 move_user.py ${username} ${target_ou} ${server_ip} ${ad_user} ${ad_password}
+                    """
                 }
             }
         }
     }
 
     post {
-        // Handling possible errors and cleanup
-        failure {
-            echo "The pipeline failed. Please check the logs for errors."
-        }
-
         success {
-            echo "Pipeline executed successfully!"
+            echo "User ${params.AD_USERNAME} moved successfully."
+        }
+        failure {
+            echo "Failed to move the user."
         }
     }
 }
