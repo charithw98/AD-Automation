@@ -1,26 +1,36 @@
-import os
-from ldap3 import Server, Connection, ALL
+import win32com.client
+import sys
 
-# Load environment variables from Jenkins
-ad_server = os.getenv('AD_SERVER')
-ad_user = os.getenv('AD_USER')
-ad_password = os.getenv('AD_PASSWORD')
-username = os.getenv('AD_USERNAME')
-destination_ou = os.getenv('DESTINATION_OU')
+def move_user(ad_username, target_ou, server_ip, ad_user, ad_password):
+    try:
+        # Create the AD connection
+        ad = win32com.client.Dispatch("ADODB.Connection")
+        connection_string = f"Provider=ADsDSOObject;Data Source=LDAP://{server_ip};"
+        ad.Open(connection_string)
 
-# Construct the user's distinguished name (DN) assuming standard structure
-user_dn = f"CN={username},OU=TestOU1,DC=example,DC=com"
+        # Authenticate
+        ad.Login(ad_user, ad_password)
 
-try:
-    # Connect to the AD server
-    server = Server(ad_server, get_info=ALL)
-    conn = Connection(server, ad_user, ad_password, auto_bind=True)
+        # Define the user and the target OU
+        user_dn = f"CN={ad_username},OU=TestOU2,DC=example,DC=com"  # Adjust as needed
+        target_dn = f"OU={target_ou},DC=example,DC=com"
 
-    # Perform the move operation
-    conn.modify_dn(user_dn, f'CN={username}', new_superior=destination_ou)
-    if conn.result['description'] == 'success':
-        print(f"User {username} moved to {destination_ou} successfully.")
-    else:
-        print("Failed to move user:", conn.result['description'])
-except Exception as e:
-    print("Error:", str(e))
+        # Move user to the target OU
+        ad.MoveHere(user_dn, target_dn)
+        print(f"Successfully moved user {ad_username} to {target_ou}")
+    except Exception as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    if len(sys.argv) != 6:
+        print("Usage: move_user.py <username> <target_ou> <server_ip> <ad_user> <ad_password>")
+        sys.exit(1)
+
+    username = sys.argv[1]
+    target_ou = sys.argv[2]
+    server_ip = sys.argv[3]
+    ad_user = sys.argv[4]
+    ad_password = sys.argv[5]
+
+    move_user(username, target_ou, server_ip, ad_user, ad_password)
