@@ -9,8 +9,9 @@ def move_user(ad_username, target_ou, server_ip, ad_user, ad_password):
 
 
         # Define the user's DN and the target OU DN
-        user_dn = f"CN={ad_username},OU=TestOU2,DC=example,DC=com"  # Adjust based on your environment
-        target_dn = f"OU={target_ou},DC=example,DC=com"
+        user_dn = f"CN={ad_username},OU=TestOU2,DC=test,DC=com"
+        target_dn = f"OU={target_ou},DC=test,DC=com"
+
 
         # Prepare the move operation
         move_result = conn.modify_dn(user_dn, target_dn)
