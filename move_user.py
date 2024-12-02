@@ -5,7 +5,8 @@ def move_user(ad_username, target_ou, server_ip, ad_user, ad_password):
     try:
         # Connect to the AD server
         server = Server(server_ip, get_info=ALL)
-        conn = Connection(server, user=f"CN={ad_user},CN=Users,DC=example,DC=com", password=ad_password, auto_bind=True)
+        conn = Connection(server, user=f"{ad_user}@test.com", password=ad_password, auto_bind=True)
+
 
         # Define the user's DN and the target OU DN
         user_dn = f"CN={ad_username},OU=TestOU2,DC=example,DC=com"  # Adjust based on your environment
