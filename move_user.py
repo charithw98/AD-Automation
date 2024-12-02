@@ -1,39 +1,28 @@
-from ldap3 import Server, Connection, ALL, MODIFY_REPLACE
+from ldap3 import Server, Connection, ALL
 import sys
 
-def move_user(ad_username, target_ou, server_ip, ad_user, ad_password):
+def test_login(server_ip, ad_user, ad_password):
     try:
         # Connect to the AD server
         server = Server(server_ip, get_info=ALL)
-        conn = Connection(server, user=f"{ad_user}@test.com", password=ad_password, auto_bind=True)
+        conn = Connection(server, user=f"CN={ad_user},CN=Users,DC=test,DC=com", password=ad_password, auto_bind=True)
 
-
-        # Define the user's DN and the target OU DN
-        user_dn = f"CN={ad_username},OU=TestOU2,DC=test,DC=com"
-        target_dn = f"OU={target_ou},DC=test,DC=com"
-
-
-        # Prepare the move operation
-        move_result = conn.modify_dn(user_dn, target_dn)
-        
-        if move_result:
-            print(f"Successfully moved user {ad_username} to {target_ou}")
+        if conn.bind():
+            print("Successfully connected to the AD server.")
+            conn.unbind()  # Close the connection
         else:
-            print(f"Failed to move user {ad_username}: {conn.last_error}")
-            sys.exit(1)
+            print(f"Failed to connect to the AD server: {conn.result}")
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":
-    if len(sys.argv) != 6:
-        print("Usage: move_user.py <username> <target_ou> <server_ip> <ad_user> <ad_password>")
+    if len(sys.argv) != 4:
+        print("Usage: test_login.py <server_ip> <ad_user> <ad_password>")
         sys.exit(1)
 
-    username = sys.argv[1]
-    target_ou = sys.argv[2]
-    server_ip = sys.argv[3]
-    ad_user = sys.argv[4]
-    ad_password = sys.argv[5]
+    server_ip = sys.argv[1]
+    ad_user = sys.argv[2]
+    ad_password = sys.argv[3]
 
-    move_user(username, target_ou, server_ip, ad_user, ad_password)
+    test_login(server_ip, ad_user, ad_password)
