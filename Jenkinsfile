@@ -8,22 +8,20 @@ pipeline {
 
     environment {
         AD_SERVER = '10.101.16.42'
-        AD_USER = 'tase'
-        AD_PASSWORD = 'Testuser@123'
+        AD_USER = credentials('ad-username-id')   // Jenkins credential ID for AD user
+        AD_PASSWORD = credentials('ad-password-id') // Jenkins credential ID for password
     }
 
     stages {
         stage('Move AD User') {
             steps {
                 script {
-                    // Define the parameters from the Jenkins UI
                     def username = params.AD_USERNAME
                     def target_ou = params.TARGET_OU
                     def server_ip = env.AD_SERVER
                     def ad_user = env.AD_USER
                     def ad_password = env.AD_PASSWORD
 
-                    // Run the Python script to move the user
                     sh """
                         python3 move_user.py ${username} ${target_ou} ${server_ip} ${ad_user} ${ad_password}
                     """
