@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'AD_USERNAME', defaultValue: 'Charith Weerasinghe', description: 'Enter the AD username to move')
+        string(name: 'AD_USERNAME', description: 'Enter the AD username to move')
         choice(name: 'TARGET_OU', choices: ['TestOU1', 'TestOU2'], description: 'Select the target OU')
     }
 
